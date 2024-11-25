@@ -77,44 +77,39 @@ def save_data(data, url, destination_folder):
     json_file_name = netloc + ".json"
     json_path = os.path.join(destination_folder, json_file_name)
     structured_data = {page_name: data}
-
     # Debugging print to ensure correct saving process
-    print("Saving data for {} to {}".format(url, json_path))
+    print("Saving data for " + url + " to " + json_path)
   # Debugging line
     print("Extracted Data:", structured_data)  # Debugging line
-
     if filedailon(json_path):  # Check if the file exists
         try:
             with open(json_path, 'r') as json_file:
                 existing_data = json.load(json_file)  # Load existing data
-                print("Existing data loaded from {}".format(json_path))
-
-
+                print("Existing data loaded from " + json_path)
             # Merge the new data with the existing data, appending the new page
             if page_name in existing_data:
-                print("Data for {} already exists, updating...".format(page_name))
+                print("Data for " + page_name + " already exists, updating...")
                 existing_data[page_name].update(structured_data[page_name])  # Update if data already exists
             else:
-                print("Adding new data for {}...".format(page_name))
+                print("Adding new data for " + page_name + "...")
                 existing_data.update(structured_data)  # Add the new page data
                 with open(json_path, 'w') as json_file:
                     json.dump(existing_data, json_file, indent=4)  # Save the updated data back to the file
-            print("Updated data saved to {}".format(json_path))
+            print("Updated data saved to " + json_path)
         except json.JSONDecodeError as e:
-            print("Error loading existing data: {}".format(e))
+            print("Error loading existing data: " + str(e))
   # Error handling if existing data can't be loaded
             # If the file is empty or corrupted, save the structured data directly
             with open(json_path, 'w') as json_file:
                 json.dump(structured_data, json_file, indent=4)
-            print("Saved new data to {} due to load error.".format(json_path))
+            print("Saved new data to " + json_path + " due to load error.")
     else:
         # If the JSON file does not exist, create it and save the structured data
         with open(json_path, 'w') as json_file:
             json.dump(structured_data, json_file, indent=4)
-        print("Created new file and saved data to {}".format(json_path))
+        print("Created new file and saved data to " + json_path)
  # Debugging line
 # =====================================================================
-
 def move_file(file_path, target_dir):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
@@ -123,14 +118,12 @@ def move_file(file_path, target_dir):
         print("Moved " + file_path + " to " + target_dir)
     except Exception as e:
         print("Error moving file " + file_path + ": " + str(e))
-
 # =====================================================================
-
 def scrape_page(url, destination_folder, visited):
     """Scrape a single page, save its data, and return its links."""
     if url in visited:  # Skip already visited URLs
         return []
-    print(f"Scraping {url}...")
+    print("Scraping " + url + "...")
     html_content = fetch_webpage(url)
     if html_content is None:
         return []
@@ -144,7 +137,7 @@ def scrape_website_recursive(start_url, destination_folder, visited, max_depth=2
     """Recursively scrape all pages starting from the given URL."""
     if current_depth > max_depth:
         return
-    print(f"Scraping depth {current_depth}: {start_url}")
+    print("Scraping depth " + str(current_depth) + ": " + start_url)
     # Scrape the current page
     links = scrape_page(start_url, destination_folder, visited)
     # Resolve and recursively scrape all links on the current page
@@ -157,6 +150,7 @@ def start_scraping():
     """GUI function to start scraping."""
     url_input = url_text.get("1.0", "end").strip()
     destination_input = destination_entry.get().strip()
+
     if not url_input:
         messagebox.showwarning("Input Error", "Please enter at least one URL!")
         return
@@ -171,7 +165,7 @@ def start_scraping():
     for idx, url in enumerate(urls):
         folder_choice = simpledialog.askstring(
             "Choose Folder",
-            f"Select folder for URL {url}:\n{', '.join(destinations)}",
+           "Select folder for URL " + url + ":\n" + ', '.join(destinations),
             parent=window
         )
         if folder_choice and folder_choice.strip() in destinations:
@@ -183,31 +177,81 @@ def start_scraping():
     visited = set()
     for url, folder in url_folder_mapping.items():
         scrape_website_recursive(url, folder, visited, max_depth=3)  # Adjust max_depth as needed
-
     messagebox.showinfo("Scraping Complete", "Scraped all URLs successfully!")
-
 # ====================================================================================================
 # GUI setup
+# GUI setup
 window = tk.Tk()
-window.title("Web Scraper")
-window.geometry("500x450")
-# Background setup
+window.title("Web Scraper Tool")
+window.geometry("600x500")
+# Custom fonts and colors
+primary_color = "#4CAF50"  # Green
+secondary_color = "#f0f0f0"  # Light Gray
+text_color = "#ffffff"  # White
+button_hover_color = "#45A049"  # Darker green for button hover
+# Add a styled background
 if os.path.exists("bg.png"):
     bg_image = PhotoImage(file="bg.png")
     background_label = tk.Label(window, image=bg_image)
     background_label.place(relwidth=1, relheight=1)
 else:
-    window.configure(bg="#f0f0f0")
-frame = tk.Frame(window, bg="#ffffff", bd=5)
-frame.place(relx=0.5, rely=0.5, anchor="center", width=450, height=400)
-title_label = tk.Label(frame, text="Web Scraper Tool", font=("Helvetica", 18, "bold"), bg="#ffffff", fg="#333333")
-title_label.pack(pady=10)
-tk.Label(frame, text="Enter URLs (comma-separated):", bg="#ffffff", fg="#555555").pack(pady=5)
-url_text = tk.Text(frame, height=5, width=40)
-url_text.pack(pady=5)
-tk.Label(frame, text="Destination Folders (comma-separated):", bg="#ffffff", fg="#555555").pack(pady=5)
-destination_entry = tk.Entry(frame, width=40)
-destination_entry.pack(pady=5)
-scrape_button = tk.Button(frame, text="Start Scraping", bg="#0078D7", fg="white", command=start_scraping)
+    window.configure(bg=secondary_color)
+# Frame for the content
+frame = tk.Frame(window, bg="#ffffff", bd=5, relief="groove")
+frame.place(relx=0.5, rely=0.5, anchor="center", width=500, height=400)
+# Title label with a larger font
+title_label = tk.Label(
+    frame,
+    text="🕸 Web Scraper Tool",
+    font=("Helvetica", 20, "bold"),
+    bg=primary_color,
+    fg=text_color,
+    pady=10
+)
+title_label.pack(fill="x")
+# Spacing between sections
+def add_spacer(height):
+    tk.Label(frame, bg="#ffffff", height=height).pack()
+# Add input for URLs
+add_spacer(1)
+tk.Label(
+    frame, text="Enter URLs (comma-separated):", font=("Helvetica", 12), bg="#ffffff", fg="#333333"
+).pack(anchor="w", padx=20)
+url_text = tk.Text(frame, height=5, width=50, font=("Helvetica", 11))
+url_text.pack(padx=20, pady=5)
+# Add input for destination folders
+add_spacer(1)
+tk.Label(
+    frame, text="Destination Folders (comma-separated):", font=("Helvetica", 12), bg="#ffffff", fg="#333333"
+).pack(anchor="w", padx=20)
+destination_entry = tk.Entry(frame, width=50, font=("Helvetica", 11))
+destination_entry.pack(padx=20, pady=5)
+# Add a styled button with hover effect
+def on_enter(e):
+    scrape_button["bg"] = button_hover_color
+def on_leave(e):
+    scrape_button["bg"] = primary_color
+scrape_button = tk.Button(
+    frame,
+    text="Start Scraping",
+    bg=primary_color,
+    fg=text_color,
+    font=("Helvetica", 14, "bold"),
+    padx=20,
+    pady=5,
+    relief="raised",
+    command=start_scraping
+)
 scrape_button.pack(pady=20)
+scrape_button.bind("<Enter>", on_enter)
+scrape_button.bind("<Leave>", on_leave)
+
+# Add a footer
+footer_label = tk.Label(
+    window,
+    text="Powered by Web Scraper| G21",
+    font=("Helvetica", 10),
+    bg=secondary_color,
+    fg="#555555")
+footer_label.pack(side="bottom", pady=10)
 window.mainloop()
